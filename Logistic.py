@@ -2,6 +2,7 @@
 import time
 import urllib
 import random
+import sys
 # import pytesseract
 import requests
 import os
@@ -63,7 +64,7 @@ class log():
     @classmethod
     def WRITE(cls, name, string):
 
-        logging.basicConfig(format=cls.__FORMAT, level=logging.WARNING, filename='Logistic.log')
+        logging.basicConfig(format=cls.__FORMAT, level=logging.WARNING, filename='logistic.log')
         logger = logging.getLogger(name)
         logger.warning(string)
 
@@ -180,8 +181,9 @@ class hct(request, MyThread):
                 hct_list = list()
 
                 for i in result.find_all('span', {'id': 'lbl_stats'}):
-                    if '查無此配送資料!!' in i.text:
+                    if '查無此配送資料' in i.text:
                         no_status = 0
+
                 if no_status == 0:
                     update(0, pack_no)
                     break
@@ -238,7 +240,7 @@ class hct(request, MyThread):
     @classmethod
     def hct_main(cls):
         # a = [8017965454, 1355356354, 6828068553, 6649757660, 8650349120]
-        # a = [6650460670]
+        # a = [8559603931, 8559603743, 8559603905, 8818200565]
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
                        where [SCT_DESC] = '新竹貨運' and [PACKAGE_STATUS] = 0 ''')
         result = connection.db('AZURE').do_query(sql_stat)
@@ -633,7 +635,7 @@ class e_can(request, MyThread):
         attempts = 0
         while attempts < 5:
             try:
-                result = request.get_page_big5(url)
+                result = request.get_page_utf8(url)
 
                 ecan_list = list()
                 arrival = 0
@@ -660,7 +662,7 @@ class e_can(request, MyThread):
                          '說明': ecan_list[i+2],
                          '日期/時間': ecan_list[i+3],
                          '作業站': ecan_list[i+4]} for i in range(0, len(ecan_list), 5)]
-
+                print(body)
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
                 doc = {
                     'ORD_NUM': ord_num,
@@ -694,7 +696,7 @@ class e_can(request, MyThread):
 
     @classmethod
     def ecan_main(cls):
-        # a = [778013374515]
+        # a = [401217051244, 778013884524, 777049625796]
 
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
                        where [SCT_DESC] = '台灣宅配通' and [PACKAGE_STATUS] = 0 ''')
@@ -1103,6 +1105,7 @@ if __name__ == '__main__':
 
     main()
     # pstmail.pstmail_main()
-    # hct.hct_main()
+    #e_can.ecan_main()
     # e_can.ecan_main()
     print('Finish')
+    sys.exit()
