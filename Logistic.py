@@ -177,26 +177,30 @@ class hct(request, MyThread):
                 result = request.get_page_utf8(url + package_no_b64)
 
                 arrival = 0
-                no_status = 1 ### default 1, if non arrive then 0
+                # no_status = 1 ### default 1, if non arrive then 0
                 hct_list = list()
 
-                for i in result.find_all('span', {'id': 'lbl_stats'}):
-                    if '查無此配送資料' in i.text:
-                        no_status = 0
-
-                if no_status == 0:
-                    update(0, pack_no)
-                    break
+                # for i in result.find_all('span', {'id': 'lbl_stats'}):
+                #     if '查無此配送資料' in i.text:
+                #         no_status = 0
+                #
+                # if no_status == 0:
+                #     update(0, pack_no)
+                #     break
 
                 if result.find_all('td', {'class': 'pad'}):
                     for i in result.find_all('td', {'class': 'pad'}):
-                        hct_list.append(i.text)
+                        text = i.text
+                        hct_list.append(text)
                         ### verify package arrival
                         if '送達' in i.text:
                             arrival = 1
                         ### verify package arrival
+                        if text is None:
+                            log.WRITE('新竹物流', '{}, HTML格式可能改變'.format(pack_no))
                 else:
-                    log.WRITE('新竹物流', '{}, HTML格式可能改變'.format(pack_no))
+                    update(0, pack_no)
+                    break
 
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
@@ -239,7 +243,6 @@ class hct(request, MyThread):
 
     @classmethod
     def hct_main(cls):
-        # a = [8017965454, 1355356354, 6828068553, 6649757660, 8650349120]
         # a = [8559603931, 8559603743, 8559603905, 8818200565]
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
                        where [SCT_DESC] = '新竹貨運' and [PACKAGE_STATUS] = 0 ''')
@@ -251,9 +254,9 @@ class hct(request, MyThread):
         ### 開啟_WORKER_THREAD_NUM個線程
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
-            time.sleep(0.27)
+            thread.setDaemon(True)
             thread.start()  ### 線程開始處理任務
-            # threads.append(thread)
+        #     threads.append(thread)
         # for thread in threads:
         #     thread.join()
         ### 等待所有任務完成
@@ -379,6 +382,7 @@ class t_cat(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             time.sleep(0.27)
+            thread.setDaemon(True)
             thread.start()
         #     threads.append(thread)
         # for thread in threads:
@@ -598,6 +602,7 @@ class pstmail(MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             time.sleep(0.37)
+            thread.setDaemon(True)
             thread.start()
         #     threads.append(thread)
         # for thread in threads:
@@ -710,6 +715,7 @@ class e_can(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             time.sleep(0.37)
+            thread.setDaemon(True)
             thread.start()
             # threads.append(thread)
         # for thread in threads:
@@ -812,6 +818,7 @@ class ktj(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             time.sleep(0.27)
+            thread.setDaemon(True)
             thread.start()
         #     threads.append(thread)
         # for thread in threads:
@@ -917,6 +924,7 @@ class tong_ying(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             time.sleep(0.27)
+            thread.setDaemon(True)
             thread.start()
         #     threads.append(thread)
         # for thread in threads:
@@ -1050,6 +1058,7 @@ class maple(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             time.sleep(0.27)
+            thread.setDaemon(True)
             thread.start()
         #     threads.append(thread)
         # for thread in threads:
@@ -1068,7 +1077,7 @@ def update(status, pack_no):
 def main():
 
     SHARE_Q = queue.Queue()
-    _WORKER_THREAD_NUM = 3
+    _WORKER_THREAD_NUM = 4
 
     def worker():
 
@@ -1092,6 +1101,7 @@ def main():
         for i in range(_WORKER_THREAD_NUM):
             thread = MyThread(worker)
             time.sleep(0.27)
+            thread.setDaemon(True)
             thread.start()
         #     threads.append(thread)
         # for thread in threads:
@@ -1104,8 +1114,8 @@ def main():
 if __name__ == '__main__':
 
     main()
-    # pstmail.pstmail_main()
-    #e_can.ecan_main()
+    # hct.hct_main()
     # e_can.ecan_main()
     print('Finish')
-    sys.exit()
+    # sys.exit()
+
