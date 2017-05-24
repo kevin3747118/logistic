@@ -74,11 +74,23 @@ class MyThread(threading.Thread):
 
         super(MyThread, self).__init__()  ### 調用父類的結構函數
         self.func = func  ### 傳入線程函數邏輯
+        self._stop_event = threading.Event() ### 線程停止的方法
+
+        self.threadLock = threading.Lock()
 
     def run(self):
 
+        self.threadLock.acquire()
         self.func()
+        self.threadLock.release()
 
+    def stop(self):
+
+        self._stop_event.set()
+
+    def stopped(self):
+
+        return self._stop_event.is_set()
 
 class request(object):
 
@@ -239,6 +251,8 @@ class hct(request, MyThread):
                 item = cls.SHARE_Q.get()
                 cls.parse_hct(item)
                 cls.SHARE_Q.task_done()
+            else:
+                break
 
     @classmethod
     def hct_main(cls):
@@ -253,9 +267,10 @@ class hct(request, MyThread):
         ### 開啟_WORKER_THREAD_NUM個線程
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
-            thread.setDaemon(True)
-            thread.start()  ### 線程開始處理任務
-        #     threads.append(thread)
+            time.sleep(0.27)
+            # thread.setDaemon(True)
+            thread.start() ### 線程開始處理任務
+            thread.join()
         # for thread in threads:
         #     thread.join()
         ### 等待所有任務完成
@@ -366,6 +381,8 @@ class t_cat(request, MyThread):
                 item = cls.SHARE_Q.get()
                 cls.parse_tcat(item)
                 cls.SHARE_Q.task_done()
+            else:
+                break
 
     @classmethod
     def tcat_main(cls):
@@ -381,12 +398,11 @@ class t_cat(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             time.sleep(0.27)
-            thread.setDaemon(True)
+            # thread.setDaemon(True)
             thread.start()
-        #     threads.append(thread)
+            # threads.append(thread)
         # for thread in threads:
-        #     thread.join()
-
+            thread.join()
         cls.SHARE_Q.join()
 
 ###郵局### 投遞成功
@@ -479,9 +495,9 @@ class pstmail(MyThread):
 
     @classmethod
     def parse_pst(cls, item):
-        # pack_no = str(item)
-        pack_no = str(item[1])
-        ord_num = item[0]
+        pack_no = str(item)
+        # pack_no = str(item[1])
+        # ord_num = item[0]
 
         url = "http://postserv.post.gov.tw/pstmail/EsoafDispatcher"
 
@@ -526,7 +542,7 @@ class pstmail(MyThread):
                 response = requests.request("POST", url, data=payload, headers=headers)
                 response_text = response.text.replace('[', '').replace(']', '').replace(' ','').replace('\u3000', '')
 
-                if '無此資料' in response_text:
+                if '無此資料' in response_text or not response_text:
                     update(0, pack_no)
                     break
 
@@ -557,7 +573,7 @@ class pstmail(MyThread):
                     now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
                     doc = {
-                        'ORD_NUM': ord_num,
+                        'ORD_NUM': 'test',
                         'PACKAGE_NO': pack_no,
                         'PACKAGE_STATUS': body,
                         'FLAG': arrival,
@@ -584,15 +600,17 @@ class pstmail(MyThread):
     def worker(cls):
         while True:
             if not cls.SHARE_Q.empty():
+                print(cls.SHARE_Q.empty())
                 item = cls.SHARE_Q.get()
                 cls.parse_pst(item)
                 cls.SHARE_Q.task_done()
+            else:
+                break
 
     @classmethod
     def pstmail_main(cls):
 
         # a = [97129760003210238002, 77448222027818]
-        # a = ['00931410501018']
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
                        where [SCT_DESC] = '郵局' and [PACKAGE_STATUS] = 0 ''')
         result = connection.db('AZURE').do_query(sql_stat)
@@ -605,12 +623,12 @@ class pstmail(MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             time.sleep(0.37)
-            thread.setDaemon(True)
+            # thread.setDaemon(True)
             thread.start()
-        #     threads.append(thread)
+            thread.join()
+            # threads.append(thread)
         # for thread in threads:
         #     thread.join()
-
         cls.SHARE_Q.join()
 
 
@@ -701,6 +719,8 @@ class e_can(request, MyThread):
                 item = cls.SHARE_Q.get()
                 cls.parse_ecan(item)
                 cls.SHARE_Q.task_done()
+            else:
+                break
 
     @classmethod
     def ecan_main(cls):
@@ -717,12 +737,12 @@ class e_can(request, MyThread):
 
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
-            time.sleep(0.37)
-            thread.setDaemon(True)
+            time.sleep(0.27)
+            # thread.setDaemon(True)
             thread.start()
             # threads.append(thread)
         # for thread in threads:
-        #     thread.join()
+            thread.join()
         cls.SHARE_Q.join()
 
 
@@ -805,6 +825,8 @@ class ktj(request, MyThread):
                 item = cls.SHARE_Q.get()
                 cls.parse_ktj(item)
                 cls.SHARE_Q.task_done()
+            else:
+                break
 
     @classmethod
     def ktj_main(cls):
@@ -821,11 +843,11 @@ class ktj(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             time.sleep(0.27)
-            thread.setDaemon(True)
+            # thread.setDaemon(True)
             thread.start()
-        #     threads.append(thread)
+            # threads.append(thread)
         # for thread in threads:
-        #     thread.join()
+            thread.join()
 
         cls.SHARE_Q.join()
 
@@ -911,6 +933,8 @@ class tong_ying(request, MyThread):
                 item = cls.SHARE_Q.get()
                 cls.parse_tongying(item)
                 cls.SHARE_Q.task_done()
+            else:
+                break
 
     @classmethod
     def tongying_main(cls):
@@ -927,11 +951,11 @@ class tong_ying(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             time.sleep(0.27)
-            thread.setDaemon(True)
+            # thread.setDaemon(True)
             thread.start()
-        #     threads.append(thread)
+            # threads.append(thread)
         # for thread in threads:
-        #     thread.join()
+            thread.join()
 
         cls.SHARE_Q.join()
 
@@ -1044,6 +1068,8 @@ class maple(request, MyThread):
                 item = cls.SHARE_Q.get()
                 cls.parse_maple(item)
                 cls.SHARE_Q.task_done()
+            else:
+                break
 
     @classmethod
     def maple_main(cls):
@@ -1061,11 +1087,11 @@ class maple(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             time.sleep(0.27)
-            thread.setDaemon(True)
+            # thread.setDaemon(True)
             thread.start()
-        #     threads.append(thread)
-        # for thread in threads:
-        #     thread.join()
+            threads.append(thread)
+        for thread in threads:
+            thread.join()
 
         cls.SHARE_Q.join()
 
@@ -1089,6 +1115,8 @@ def main():
                 item = SHARE_Q.get()
                 item()
                 SHARE_Q.task_done()
+            else:
+                break
 
     def start():
 
@@ -1104,11 +1132,11 @@ def main():
         for i in range(_WORKER_THREAD_NUM):
             thread = MyThread(worker)
             time.sleep(0.27)
-            thread.setDaemon(True)
+            # thread.setDaemon(True)
             thread.start()
-        #     threads.append(thread)
-        # for thread in threads:
-        #     thread.join()
+            threads.append(thread)
+        for thread in threads:
+            thread.join()
 
         SHARE_Q.join()
 
@@ -1116,9 +1144,8 @@ def main():
 
 if __name__ == '__main__':
 
-    # main()
-    pstmail.pstmail_main()
-    # e_can.ecan_main()
+    main()
     print('Finish')
+    # pstmail.pstmail_main()
     # sys.exit()
 
