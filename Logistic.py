@@ -1,4 +1,3 @@
-#-*- coding: utf-8 -*-
 import time
 import urllib
 import random
@@ -534,6 +533,11 @@ class pstmail(MyThread):
                 pattern = 'DATIME\":\".*?\"|STATUS\":\".*?\"|BRHNC\":\".*?\"'
                 result = re.findall(pattern, response_text)[1:]
 
+                ### verify 'DATIME":""' in result or not ###
+                if 'DATIME":""' in result:
+                    result.remove('DATIME":""')
+                ### verify 'DATIME":""' in result or not ###
+
                 clean_1 = list()
                 arrival = 0
 
@@ -559,7 +563,6 @@ class pstmail(MyThread):
                         'FLAG': arrival,
                         'UPDATE_TIME': now,
                     }
-
                     connection.ELK.handle_ES('郵局', 'PSTMAIL', doc, pack_no)
 
                     if arrival == 1:
@@ -588,8 +591,8 @@ class pstmail(MyThread):
     @classmethod
     def pstmail_main(cls):
 
-        # a = [97129760003210238002, 77448222027818, 60372622007318, 34490424126178, 95793200102670]
-        # a = [77448222027818]
+        # a = [97129760003210238002, 77448222027818]
+        # a = ['00931410501018']
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
                        where [SCT_DESC] = '郵局' and [PACKAGE_STATUS] = 0 ''')
         result = connection.db('AZURE').do_query(sql_stat)
@@ -667,7 +670,7 @@ class e_can(request, MyThread):
                          '說明': ecan_list[i+2],
                          '日期/時間': ecan_list[i+3],
                          '作業站': ecan_list[i+4]} for i in range(0, len(ecan_list), 5)]
-                print(body)
+
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
                 doc = {
                     'ORD_NUM': ord_num,
@@ -1113,8 +1116,8 @@ def main():
 
 if __name__ == '__main__':
 
-    main()
-    # hct.hct_main()
+    # main()
+    pstmail.pstmail_main()
     # e_can.ecan_main()
     print('Finish')
     # sys.exit()
