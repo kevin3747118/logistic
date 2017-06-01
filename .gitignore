@@ -5,6 +5,8 @@
 *.log
 
 DB_CONNECTION*
+pic*
 
 [Tt]est*
+
 __pycache__
