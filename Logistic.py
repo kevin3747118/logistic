@@ -616,11 +616,14 @@ class pstmail(MyThread):
                     break
 
                 else:
-                    log.WRITE('郵局', '{}, JSON格式可能改變'.format(pack_no))
+                    attempts += 1
+                    time.sleep(300)
+                    if attempts == 2:
+                        log.WRITE('郵局', '{}, JSON格式可能改變'.format(pack_no))
 
             except Exception as e:
                 attempts += 1
-                if attempts == 3:
+                if attempts == 2:
                     log.WRITE('郵局', '{}, {}'.format(pack_no, e))
 
     @classmethod
@@ -638,7 +641,7 @@ class pstmail(MyThread):
 
         # a = ['00898360203218', '00487830300816']
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
-                       where [SCT_DESC] = '郵局' and [PACKAGE_STATUS] = 0 ''')
+                       where [SCT_DESC] = '郵局' and [PACKAGE_STATUS] = 0 and PACKAGE_NO = '07109710635916' ''')
         result = connection.db('AZURE').do_query(sql_stat)
 
         threads = []
@@ -915,7 +918,7 @@ class tong_ying(request, MyThread):
 
                 remove_list = ['點貨日期', '作業別', '件數', '才數', '作業站所', '車番', '配送狀態',
                                '發送日期', '發送站', '配送編號', '寄件人', '收件人', '送達日期',
-                               '訂單編號', '配送狀態', '配送狀況', 'Payeasy             ', '']
+                               '訂單編號', '配送狀態', '配送狀況', 'Payeasy             ', ' ']
 
                 if result.find_all('div', {'align':'center', 'class': 'style2'} ):
                     for i in result.find_all('div', {'align':'center', 'class': 'style2'} ):
@@ -1211,7 +1214,8 @@ def main():
 if __name__ == '__main__':
 
     # main()
-    tong_ying.tongying_main()
+    pstmail.pstmail_main()
+    # tong_ying.tongying_main()
     print('Finish')
     # sys.exit()
 
