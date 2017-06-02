@@ -641,7 +641,7 @@ class pstmail(MyThread):
 
         # a = ['00898360203218', '00487830300816']
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
-                       where [SCT_DESC] = '郵局' and [PACKAGE_STATUS] = 0 and PACKAGE_NO = '07109710635916' ''')
+                       where [SCT_DESC] = '郵局' and [PACKAGE_STATUS] = 0 ''')
         result = connection.db('AZURE').do_query(sql_stat)
 
         threads = []
@@ -1213,8 +1213,8 @@ def main():
 
 if __name__ == '__main__':
 
-    # main()
-    pstmail.pstmail_main()
+    main()
+    # pstmail.pstmail_main()
     # tong_ying.tongying_main()
     print('Finish')
     # sys.exit()
