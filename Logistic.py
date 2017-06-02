@@ -915,7 +915,7 @@ class tong_ying(request, MyThread):
 
                 remove_list = ['點貨日期', '作業別', '件數', '才數', '作業站所', '車番', '配送狀態',
                                '發送日期', '發送站', '配送編號', '寄件人', '收件人', '送達日期',
-                               '訂單編號', '配送狀態', '配送狀況', ' ']
+                               '訂單編號', '配送狀態', '配送狀況', 'Payeasy             ', '']
 
                 if result.find_all('div', {'align':'center', 'class': 'style2'} ):
                     for i in result.find_all('div', {'align':'center', 'class': 'style2'} ):
@@ -950,7 +950,7 @@ class tong_ying(request, MyThread):
                 if arrival == 1:
                     body.append({'日期': tongying_list2[-2],
                                  '狀態': tongying_list2[-1],
-                                 '業所': body[1].get('業所')})
+                                 '業所': body[len(body) - 1].get('業所')}) #len(body) - 1 判斷通盈有幾個結果
 
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
@@ -1210,8 +1210,8 @@ def main():
 
 if __name__ == '__main__':
 
-    main()
-    # tong_ying.tongying_main()
+    # main()
+    tong_ying.tongying_main()
     print('Finish')
     # sys.exit()
 
