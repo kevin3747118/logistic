@@ -1028,9 +1028,14 @@ class maple(request, MyThread):
         ##查無條碼(6週)
         url = 'http://www.25431010.tw/Search.php'
 
+        s = requests.Session()
+        response = s.get(url)
+
+        result = BeautifulSoup(response.text, 'lxml')
+
         payload = {
-            'tik': '2169986851496197222',
-            'BARCODE1': pack_no,
+            'tik': result.find('input', {'name': 'tik'})['value'],
+            'BARCODE1': '010143508051',
             'BARCODE2': '',
             'BARCODE3': ''
         }
@@ -1048,7 +1053,7 @@ class maple(request, MyThread):
             'Referer': 'http://www.25431010.tw/Search.php',
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-            'cookie': 'FSESSIONID=l2ejs09emg9hq3nm525uht0oe2'
+            'Cookie': response.headers.get('Set-Cookie').replace('; path=/; HttpOnly', '')
         }
 
         attempts = 0
@@ -1056,7 +1061,7 @@ class maple(request, MyThread):
             try:
                 req_counts = 0
                 while req_counts < 3:
-                    response = requests.request("POST", url, data=payload, headers=headers)
+                    response2 = s.post(url, data=payload, headers=headers)
                     if response.status_code == 200:
                         break
                     else:
@@ -1066,7 +1071,7 @@ class maple(request, MyThread):
                     log.WRITE('便利帶', 'status code != 200')
                     break
 
-                result = BeautifulSoup(response.text, 'lxml')
+                result2 = BeautifulSoup(response.text, 'lxml')
 
                 # tik_html = request.get_page_utf8(url)
                 # tik_values = None
@@ -1087,8 +1092,8 @@ class maple(request, MyThread):
                 arrival = 0
                 remove_list = ['配送歷程']
                 # 查無條碼
-                if result.find_all('td', {'align': 'center', 'bgcolor': '#FFFFCC'}):
-                    for i in result.find_all('td', {'align': 'center', 'bgcolor': '#FFFFCC'}):
+                if result2.find_all('td', {'align': 'center', 'bgcolor': '#FFFFCC'}):
+                    for i in result2.find_all('td', {'align': 'center', 'bgcolor': '#FFFFCC'}):
                         if i.text not in remove_list:
                             text = i.text.replace('\xa0', '')
                             maple_list.append(text)
@@ -1214,8 +1219,6 @@ def main():
 if __name__ == '__main__':
 
     main()
-    # pstmail.pstmail_main()
-    # tong_ying.tongying_main()
     print('Finish')
     # sys.exit()
 
