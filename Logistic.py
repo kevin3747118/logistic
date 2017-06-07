@@ -12,11 +12,9 @@ import base64
 import queue
 import threading
 import re
-import logging
 
 
 from bs4 import BeautifulSoup
-from elasticsearch import Elasticsearch
 from DB_CONNECTION import connection
 
 # from PIL import Image
@@ -55,18 +53,6 @@ doc = {
     'UPDATE_TIME': 'xxx'
 }
 """
-
-
-class log():
-
-    __FORMAT = '%(asctime)s - %(levelname)s - %(name)-12s - %(message)s'
-
-    @classmethod
-    def WRITE(cls, name, string):
-
-        logging.basicConfig(format=cls.__FORMAT, level=logging.WARNING, filename='logistic.log')
-        logger = logging.getLogger(name)
-        logger.warning(string)
 
 
 class MyThread(threading.Thread):
@@ -233,9 +219,9 @@ class hct(request, MyThread):
                             arrival = 1
                         ### verify package arrival
                         if text is None:
-                            log.WRITE('新竹物流', '{}, HTML格式可能改變'.format(pack_no))
+                            connection.mail.send_mail('新竹物流: {}, HTML格式可能改變'.format(pack_no))
                 elif result.find_all('ul', {'class': 'searchHelp'}):
-                    log.WRITE('新竹物流', '可能換方法')
+                    connection.mail.send_mail('新竹物流: 可能換方法')
                 else:
                     update(0, pack_no)
                     break
@@ -268,7 +254,7 @@ class hct(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    log.WRITE('新竹物流', '{}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('新竹物流: {}, {}'.format(pack_no, e))
 
 
     @classmethod
@@ -369,7 +355,7 @@ class t_cat(request, MyThread):
                         if '順利送達' in text:
                             arrival = 1
                         if text is None:
-                            log.WRITE('黑貓宅急便', '{}, HTML格式可能改變'.format(pack_no))
+                            connection.mail.send_mail('黑貓宅急便: {}, HTML格式可能改變'.format(pack_no))
                 else:
                     update(0, pack_no)
                     break
@@ -399,7 +385,7 @@ class t_cat(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    log.WRITE('黑貓宅急便', '{}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('黑貓宅急便: {}, {}'.format(pack_no, e))
 
     @classmethod
     def worker(cls):
@@ -619,12 +605,12 @@ class pstmail(MyThread):
                     attempts += 1
                     time.sleep(300)
                     if attempts == 2:
-                        log.WRITE('郵局', '{}, JSON格式可能改變'.format(pack_no))
+                        connection.mail.send_mail('郵局: {}, JSON格式可能改變'.format(pack_no))
 
             except Exception as e:
                 attempts += 1
                 if attempts == 2:
-                    log.WRITE('郵局', '{}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('郵局: {}, {}'.format(pack_no, e))
 
     @classmethod
     def worker(cls):
@@ -706,7 +692,7 @@ class e_can(request, MyThread):
                             if '配送完成' or '貨件送達' in text:
                                 arrival = 1
                             if text is None:
-                                log.WRITE('宅配通', '{}, HTML格式可能改變'.format(pack_no))
+                                connection.mail.send_mail('宅配通: {}, HTML格式可能改變'.format(pack_no))
 
                 else:
                     update(0, pack_no)
@@ -738,7 +724,7 @@ class e_can(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    log.WRITE('宅配通', '{}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('宅配通: {}, {}'.format(pack_no, e))
 
     @classmethod
     def worker(cls):
@@ -814,7 +800,7 @@ class ktj(request, MyThread):
                         if '已完成簽收' in i.text:
                             arrival = 1
                         if i.text is None:
-                            log.WRITE('嘉里物流', '{}, HTML格式可能改變'.format(pack_no))
+                            connection.mail.send_mail('嘉里物流: {}, HTML格式可能改變'.format(pack_no))
                 else:
                     update(0, pack_no)
                     break
@@ -845,7 +831,7 @@ class ktj(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    log.WRITE('嘉里物流', '{}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('嘉里物流: {}, {}'.format(pack_no, e))
 
 
     @classmethod
@@ -928,7 +914,7 @@ class tong_ying(request, MyThread):
                             # if '已送達' in text:
                             #     arrival = 1
                             if text is None:
-                                log.WRITE('通盈貨運', '{}, HTML格式可能改變'.format(pack_no))
+                                connection.mail.send_mail('通盈貨運: {}, HTML格式可能改變'.format(pack_no))
                     for j in result2.find_all('font', {'color': 'white'}):
                         if j.text not in remove_list:
                             text2 = j.text.replace(' ','')
@@ -977,7 +963,7 @@ class tong_ying(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    log.WRITE('通盈貨運', '{}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('通盈貨運: {}, {}'.format(pack_no, e))
 
     @classmethod
     def worker(cls):
@@ -1068,7 +1054,7 @@ class maple(request, MyThread):
                         req_counts += 1
 
                 if req_counts == 3:
-                    log.WRITE('便利帶', 'status code != 200')
+                    connection.mail.send_mail('便利帶: status code != 200')
                     break
 
                 result2 = BeautifulSoup(response.text, 'lxml')
@@ -1100,7 +1086,7 @@ class maple(request, MyThread):
                             if '送件完成' in text:
                                 arrival = 1
                             if text is None:
-                                log.WRITE('便利帶', '{}, HTML格式可能改變'.format(pack_no))
+                                connection.mail.send_mail('便利帶: {}, HTML格式可能改變'.format(pack_no))
                 else:
                     update(0, pack_no)
                     break
@@ -1135,7 +1121,7 @@ class maple(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    log.WRITE('便利帶', '{}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('便利帶: {}, {}'.format(pack_no, e))
 
     @classmethod
     def worker(cls):
