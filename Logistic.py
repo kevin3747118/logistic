@@ -1021,7 +1021,7 @@ class maple(request, MyThread):
 
         payload = {
             'tik': result.find('input', {'name': 'tik'})['value'],
-            'BARCODE1': '010143508051',
+            'BARCODE1': pack_no,
             'BARCODE2': '',
             'BARCODE3': ''
         }
@@ -1048,7 +1048,7 @@ class maple(request, MyThread):
                 req_counts = 0
                 while req_counts < 3:
                     response2 = s.post(url, data=payload, headers=headers)
-                    if response.status_code == 200:
+                    if response2.status_code == 200:
                         break
                     else:
                         req_counts += 1
@@ -1057,7 +1057,7 @@ class maple(request, MyThread):
                     connection.mail.send_mail('便利帶: status code != 200')
                     break
 
-                result2 = BeautifulSoup(response.text, 'lxml')
+                result2 = BeautifulSoup(response2.text, 'lxml')
 
                 # tik_html = request.get_page_utf8(url)
                 # tik_values = None
@@ -1098,6 +1098,7 @@ class maple(request, MyThread):
                 body = [{'業所': '',
                          '日期': maple_list[i + 1],
                          '狀態': maple_list[i + 2]} for i in range(0, len(maple_list), 3)]
+                print(body)
 
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
