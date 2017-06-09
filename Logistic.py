@@ -1098,8 +1098,7 @@ class maple(request, MyThread):
                 body = [{'業所': '',
                          '日期': maple_list[i + 1],
                          '狀態': maple_list[i + 2]} for i in range(0, len(maple_list), 3)]
-                print(body)
-
+                # print(body)
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
                 doc = {
@@ -1204,8 +1203,8 @@ def main():
     start()
 
 if __name__ == '__main__':
-
-    main()
+    maple.maple_main()
+    # main()
     print('Finish')
     # sys.exit()
 
