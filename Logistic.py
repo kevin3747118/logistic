@@ -1104,9 +1104,14 @@ class maple(request, MyThread):
                 #          '日期': maple_list[i + 1],
                 #          '目前狀態': maple_list[i + 2]} for i in range(0, len(maple_list), 3)]
 
-                ### 把前面3個拿掉 ###
-                maple_list = maple_list[3:]
-                ### 把前面3個拿掉 ###
+                ### 把前面3個拿掉，如果委外的話，狀態結束 ###
+                if '委外' in maple_list:
+                    arrival = 1
+                    maple_list = maple_list[6:]
+                else:
+                    maple_list = maple_list[3:]
+                ### 把前面3個拿掉，如果委外的話，狀態結束###
+
                 body = [{'station': '',
                          'date': maple_list[i + 1],
                          'status': maple_list[i + 2],
@@ -1149,9 +1154,9 @@ class maple(request, MyThread):
     @classmethod
     def maple_main(cls):
 
-        # a = ['760057690948']
+        # a = ['010145523083']
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
-                       where [SCT_DESC] = '豐業物流(便利帶)' and [PACKAGE_STATUS] = 0''') #
+                       where [SCT_DESC] = '豐業物流(便利帶)' and [PACKAGE_STATUS] = 0 ''') #
         result = connection.db('AZURE').do_query(sql_stat)
         threads = []
 
@@ -1216,7 +1221,7 @@ def main():
     start()
 
 if __name__ == '__main__':
-
+    
     main()
     print('Finish')
     # sys.exit()
