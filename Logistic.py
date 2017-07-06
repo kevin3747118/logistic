@@ -219,18 +219,19 @@ class hct(request, MyThread):
                             arrival = 1
                         ### verify package arrival
                         if text is None:
-                            connection.mail.send_mail('新竹物流: {}, HTML格式可能改變'.format(pack_no))
+                            connection.mail.send_mail('新竹物流: {}, HTML格式可能改變'.format(pack_no), '物流')
                 elif result.find_all('ul', {'class': 'searchHelp'}):
-                    connection.mail.send_mail('新竹物流: 可能換方法')
+                    connection.mail.send_mail('新竹物流: 可能換方法', '物流')
                 else:
                     update(0, pack_no)
                     break
 
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
-                body = [{'時間': hct_list[i],
-                         '狀態': hct_list[i+1],
-                         '業所': ''
+                body = [{'date': hct_list[i],
+                         'status': hct_list[i+1],
+                         'station': '',
+                         'status_code': ''
                         }for i in range(0, len(hct_list), 2)]
                 # hct_dict = {hct_list[i]: hct_list[i + 1] for i in range(0, len(hct_list), 2)}
 
@@ -254,7 +255,7 @@ class hct(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    connection.mail.send_mail('新竹物流: {}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('新竹物流: {}, {}'.format(pack_no, e), '物流')
 
 
     @classmethod
@@ -355,14 +356,15 @@ class t_cat(request, MyThread):
                         if '順利送達' in text:
                             arrival = 1
                         if text is None:
-                            connection.mail.send_mail('黑貓宅急便: {}, HTML格式可能改變'.format(pack_no))
+                            connection.mail.send_mail('黑貓宅急便: {}, HTML格式可能改變'.format(pack_no), '物流')
                 else:
                     update(0, pack_no)
                     break
 
-                body = [{'狀態': tcat_list[i],
-                         '時間': tcat_list[i+1][:-5] + ' ' + tcat_list[i+1][-5:],
-                         '業所': tcat_list[i+2]} for i in range(0, len(tcat_list), 3)]
+                body = [{'status': tcat_list[i],
+                         'date': tcat_list[i+1][:-5] + ' ' + tcat_list[i+1][-5:],
+                         'station': tcat_list[i+2],
+                         'status_code': ''} for i in range(0, len(tcat_list), 3)]
 
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
                 doc = {
@@ -385,7 +387,7 @@ class t_cat(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    connection.mail.send_mail('黑貓宅急便: {}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('黑貓宅急便: {}, {}'.format(pack_no, e), '物流')
 
     @classmethod
     def worker(cls):
@@ -572,7 +574,7 @@ class pstmail(MyThread):
 
                 if result:
                     for i in result:
-                        text = i.replace('"', '').replace('BRHNC', '業所').replace('DATIME', '日期').replace('STATUS', '狀態')
+                        text = i.replace('"', '').replace('BRHNC', 'station').replace('DATIME', 'date').replace('STATUS', 'status')
                         clean_1.append(text)
                         if '投遞成功' in text:
                             arrival = 1
@@ -581,7 +583,8 @@ class pstmail(MyThread):
 
                     body = [{clean_2[i][0].split(':')[0]: clean_2[i][0].split(':')[1],
                              clean_2[i][1].split(':')[0]: clean_2[i][1].split(':')[1],
-                             clean_2[i][2].split(':')[0]: clean_2[i][2].split(':')[1]} for i in range(0, len(clean_2))]
+                             clean_2[i][2].split(':')[0]: clean_2[i][2].split(':')[1],
+                             'status_code': ''} for i in range(0, len(clean_2))]
 
                     now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
@@ -605,12 +608,12 @@ class pstmail(MyThread):
                     attempts += 1
                     time.sleep(300)
                     if attempts == 2:
-                        connection.mail.send_mail('郵局: {}, JSON格式可能改變'.format(pack_no))
+                        connection.mail.send_mail('郵局: {}, JSON格式可能改變'.format(pack_no), '物流')
 
             except Exception as e:
                 attempts += 1
                 if attempts == 2:
-                    connection.mail.send_mail('郵局: {}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('郵局: {}, {}'.format(pack_no, e), '物流')
 
     @classmethod
     def worker(cls):
@@ -692,15 +695,16 @@ class e_can(request, MyThread):
                             if '配送完成' or '貨件送達' in text:
                                 arrival = 1
                             if text is None:
-                                connection.mail.send_mail('宅配通: {}, HTML格式可能改變'.format(pack_no))
+                                connection.mail.send_mail('宅配通: {}, HTML格式可能改變'.format(pack_no), '物流')
 
                 else:
                     update(0, pack_no)
                     break
 
-                body = [{'狀態': ecan_list[i+1],
-                         '日期': ecan_list[i+3],
-                         '業所': ecan_list[i+4] + '營業所'} for i in range(0, len(ecan_list), 5)]
+                body = [{'status': ecan_list[i+1],
+                         'date': ecan_list[i+3],
+                         'station': ecan_list[i+4] + '營業所',
+                         'status_code': ''} for i in range(0, len(ecan_list), 5)]
 
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
@@ -724,7 +728,7 @@ class e_can(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    connection.mail.send_mail('宅配通: {}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('宅配通: {}, {}'.format(pack_no, e), '物流')
 
     @classmethod
     def worker(cls):
@@ -800,14 +804,15 @@ class ktj(request, MyThread):
                         if '已完成簽收' in i.text:
                             arrival = 1
                         if i.text is None:
-                            connection.mail.send_mail('嘉里物流: {}, HTML格式可能改變'.format(pack_no))
+                            connection.mail.send_mail('嘉里物流: {}, HTML格式可能改變'.format(pack_no), '物流')
                 else:
                     update(0, pack_no)
                     break
 
-                body = [{'日期': ktj_list[i] + ' ' + ktj_list[i+1],
-                         '狀態': ktj_list[i+2],
-                         '業所': ktj_list[i+3] + '營業所'} for i in range(0, len(ktj_list), 4)]
+                body = [{'date': ktj_list[i] + ' ' + ktj_list[i+1],
+                         'status': ktj_list[i+2],
+                         'station': ktj_list[i+3] + '營業所',
+                         'status_code': ''} for i in range(0, len(ktj_list), 4)]
 
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
@@ -831,7 +836,7 @@ class ktj(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    connection.mail.send_mail('嘉里物流: {}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('嘉里物流: {}, {}'.format(pack_no, e), '物流')
 
 
     @classmethod
@@ -914,7 +919,7 @@ class tong_ying(request, MyThread):
                             # if '已送達' in text:
                             #     arrival = 1
                             if text is None:
-                                connection.mail.send_mail('通盈貨運: {}, HTML格式可能改變'.format(pack_no))
+                                connection.mail.send_mail('通盈貨運: {}, HTML格式可能改變'.format(pack_no), '物流')
                     for j in result2.find_all('font', {'color': 'white'}):
                         if j.text not in remove_list:
                             text2 = j.text.replace(' ','')
@@ -932,14 +937,16 @@ class tong_ying(request, MyThread):
                 #          '作業站所': tongying_list[i + 4],
                 #          '車番': tongying_list[i + 5]} for i in range(0, len(tongying_list), 6)]
 
-                body = [{'日期': tongying_list[i],
-                         '狀態': tongying_list[i + 1],
-                         '業所': tongying_list[i + 4].replace('站', '營業所')} for i in range(0, len(tongying_list), 6)]
+                body = [{'date': tongying_list[i],
+                         'status': tongying_list[i + 1],
+                         'station': tongying_list[i + 4].replace('站', '營業所'),
+                         'status_code': ''} for i in range(0, len(tongying_list), 6)]
 
                 if arrival == 1:
-                    body.append({'日期': tongying_list2[-2],
-                                 '狀態': tongying_list2[-1],
-                                 '業所': body[len(body) - 1].get('業所')}) #len(body) - 1 判斷通盈有幾個結果
+                    body.append({'date': tongying_list2[-2],
+                                 'status': tongying_list2[-1],
+                                 'station': body[len(body) - 1].get('業所'),
+                                 'status_code': ''}) #len(body) - 1 判斷通盈有幾個結果
 
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
@@ -963,7 +970,7 @@ class tong_ying(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    connection.mail.send_mail('通盈貨運: {}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('通盈貨運: {}, {}'.format(pack_no, e), '物流')
 
     @classmethod
     def worker(cls):
@@ -1054,7 +1061,7 @@ class maple(request, MyThread):
                         req_counts += 1
 
                 if req_counts == 3:
-                    connection.mail.send_mail('便利帶: status code != 200')
+                    connection.mail.send_mail('便利帶: status code != 200', '物流')
                     break
 
                 result2 = BeautifulSoup(response2.text, 'lxml')
@@ -1076,17 +1083,19 @@ class maple(request, MyThread):
 
                 maple_list = list()
                 arrival = 0
-                remove_list = ['配送歷程']
+                remove_list = ['配送歷程', '條碼1', '日期', '目前狀態']
                 # 查無條碼
-                if result2.find_all('td', {'align': 'center', 'bgcolor': '#FFFFCC'}):
-                    for i in result2.find_all('td', {'align': 'center', 'bgcolor': '#FFFFCC'}):
-                        if i.text not in remove_list:
-                            text = i.text.replace('\xa0', '')
+                # if result2.find_all('td', {'align': 'center', 'bgcolor': '#FFFFCC'}):
+                    # for i in result2.find_all('td', {'align': 'center', 'bgcolor': '#FFFFCC'}):
+                if result2.find_all('td', {'align': 'center', 'valign': 'top'}):
+                    for i in result2.find_all('td', {'align': 'center', 'valign': 'top'}):
+                        text = i.text.replace('\xa0', '')
+                        if text not in remove_list and 1 < len(text) <= 12:
                             maple_list.append(text)
                             if '送件完成' in text:
                                 arrival = 1
                             if text is None:
-                                connection.mail.send_mail('便利帶: {}, HTML格式可能改變'.format(pack_no))
+                                connection.mail.send_mail('便利帶: {}, HTML格式可能改變'.format(pack_no), '物流')
                 else:
                     update(0, pack_no)
                     break
@@ -1095,10 +1104,14 @@ class maple(request, MyThread):
                 #          '日期': maple_list[i + 1],
                 #          '目前狀態': maple_list[i + 2]} for i in range(0, len(maple_list), 3)]
 
-                body = [{'業所': '',
-                         '日期': maple_list[i + 1],
-                         '狀態': maple_list[i + 2]} for i in range(0, len(maple_list), 3)]
-                # print(body)
+                ### 把前面3個拿掉 ###
+                maple_list = maple_list[3:]
+                ### 把前面3個拿掉 ###
+                body = [{'station': '',
+                         'date': maple_list[i + 1],
+                         'status': maple_list[i + 2],
+                         'status_code': ''} for i in range(0, len(maple_list), 3)]
+
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
                 doc = {
@@ -1121,7 +1134,7 @@ class maple(request, MyThread):
             except Exception as e:
                 attempts += 1
                 if attempts == 3:
-                    connection.mail.send_mail('便利帶: {}, {}'.format(pack_no, e))
+                    connection.mail.send_mail('便利帶: {}, {}'.format(pack_no, e), '物流')
 
     @classmethod
     def worker(cls):
@@ -1138,7 +1151,7 @@ class maple(request, MyThread):
 
         # a = ['760057690948']
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
-                       where [SCT_DESC] = '豐業物流(便利帶)' and [PACKAGE_STATUS] = 0 ''')
+                       where [SCT_DESC] = '豐業物流(便利帶)' and [PACKAGE_STATUS] = 0''') #
         result = connection.db('AZURE').do_query(sql_stat)
         threads = []
 
@@ -1203,8 +1216,8 @@ def main():
     start()
 
 if __name__ == '__main__':
-    maple.maple_main()
-    # main()
+
+    main()
     print('Finish')
     # sys.exit()
 
