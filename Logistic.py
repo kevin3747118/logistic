@@ -746,7 +746,7 @@ class e_can(request, MyThread):
         # a = [778014468840, 777039297694, 777039300520]
 
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
-                       where [SCT_DESC] = '台灣宅配通' and [PACKAGE_STATUS] = 0''')
+                       where [SCT_DESC] = '台灣宅配通' and [PACKAGE_STATUS] = 0  ''') #and [PACKAGE_STATUS] = 0
         result = connection.db('AZURE').do_query(sql_stat)
 
         threads = []
