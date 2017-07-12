@@ -234,7 +234,7 @@ class hct(request, MyThread):
                          'station': '',
                          'status_code': ''
                         }for i in range(0, len(hct_list), 2)]
-                
+
                 # hct_dict = {hct_list[i]: hct_list[i + 1] for i in range(0, len(hct_list), 2)}
 
                 doc = {
@@ -1222,8 +1222,8 @@ def main():
     start()
 
 if __name__ == '__main__':
-    hct.hct_main()
-    # main()
+
+    main()
     print('Finish')
     # sys.exit()
 
