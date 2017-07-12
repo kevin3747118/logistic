@@ -157,7 +157,7 @@ class request(object):
 class hct(request, MyThread):
 
     SHARE_Q = queue.Queue()
-    _WORKER_THREAD_NUM = 5
+    _WORKER_THREAD_NUM = 3
 
     @staticmethod
     def b64_encode(string):
@@ -191,9 +191,10 @@ class hct(request, MyThread):
                     'Cache-Control': 'max-age=0',
                     'Connection': 'keep-alive',
                     'Host': 'www.hct.com.tw',
-                    'Referer': 'https://www.hct.com.tw/check_code.aspx?v=U2VhcmNoR29vZHMuYXNweD9ubz1PRFEwTXpZM05EZ3pNUT09Jm5vMj0=',
+                    'referer': "https://www.hct.com.tw/check_code.aspx?v=U2VhcmNoR29vZHMuYXNweD9ubz1PVEkwTlRFeU5UazFOZz09Jm5vMj0=",
                     'Upgrade-Insecure-Requests': '1',
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }  # Cookie:ASP.NET_SessionId=tppfd1esuupisj55gddcdlft
 
                 response = requests.request("POST", url, data=payload, headers=headers)
@@ -233,6 +234,7 @@ class hct(request, MyThread):
                          'station': '',
                          'status_code': ''
                         }for i in range(0, len(hct_list), 2)]
+                
                 # hct_dict = {hct_list[i]: hct_list[i + 1] for i in range(0, len(hct_list), 2)}
 
                 doc = {
@@ -263,8 +265,8 @@ class hct(request, MyThread):
         while True:
             if not cls.SHARE_Q.empty():
                 item = cls.SHARE_Q.get()
-                cls.parse_hct(item)
                 cls.SHARE_Q.task_done()
+                cls.parse_hct(item)
             else:
                 break
 
@@ -281,10 +283,9 @@ class hct(request, MyThread):
         ### 開啟_WORKER_THREAD_NUM個線程
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
-            # time.sleep(0.27)
-            # thread.setDaemon(True)
+            time.sleep(1)
             thread.start() ### 線程開始處理任務
-            # thread.join()
+            threads.append(thread)
         for thread in threads:
             thread.join()
         ### 等待所有任務完成
@@ -1221,8 +1222,8 @@ def main():
     start()
 
 if __name__ == '__main__':
-
-    main()
+    hct.hct_main()
+    # main()
     print('Finish')
     # sys.exit()
 
