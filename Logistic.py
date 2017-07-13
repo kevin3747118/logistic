@@ -174,7 +174,7 @@ class hct(request, MyThread):
         ord_num = item[0]
 
         package_no_b64 = hct.b64_encode(pack_no)
-        url = 'https://www.hct.com.tw/SearchGoods.aspx?no=' + package_no_b64
+        url = 'https://www.hct.com.tw/searchgoods.aspx?no=' + package_no_b64 + "&no2="
 
         attempts = 0
         while attempts < 3:
@@ -222,7 +222,7 @@ class hct(request, MyThread):
                         if text is None:
                             connection.mail.send_mail('新竹物流: {}, HTML格式可能改變'.format(pack_no), '物流')
                 elif result.find_all('ul', {'class': 'searchHelp'}):
-                    connection.mail.send_mail('新竹物流: 可能換方法', '物流')
+                    connection.mail.send_mail('新竹物流: 可能換方法', str(ord_num))
                 else:
                     update(0, pack_no)
                     break
