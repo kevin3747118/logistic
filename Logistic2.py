@@ -1,6 +1,6 @@
 #-*- coding: utf-8 -*-
 import time
-import urllib.request, urllib.parse
+import urllib
 import random
 import sys
 # import pytesseract
@@ -82,14 +82,16 @@ class MyThread(threading.Thread):
 class request(object):
 
     @classmethod
-    def get_page_utf8(cls, url, request_header=None, parameters=None):
+    def get_page_utf8(cls, url, parameters=None):
 
         if parameters:
             encode_parameters = urllib.parse.urlencode(parameters).encode('utf-8')
         else:
             encode_parameters = None
+        time.sleep(0.33)
+        request = urllib.request.Request(url)
 
-        #### 隨機 user-agent 挑選 ####
+        ####隨機header挑選####
         foo = [
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36',
             'Mozilla/5.0 (compatible, MSIE 11, Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko',
@@ -100,34 +102,57 @@ class request(object):
             'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36',
             'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'
         ]
-        user_agent = str(random.choice(foo))
-        #### 隨機 user-agent 挑選 ####
+        headers = str(random.choice(foo))
+        ####隨機header挑選####
 
-        #### 組合 headers ####
-        if request_header:
-            request_header['User-Agent'] = user_agent
-            req = urllib.request.Request(url=url, headers=request_header)
-        else:
-            req = urllib.request.Request(url=url, headers=({'User-Agent': user_agent}))
-        #### 組合 headers ####
+        request.add_header('User-Agent', headers)
+        time.sleep(0.42)
 
+        response = None
         try:
-            response = urllib.request.urlopen(req, data=encode_parameters, timeout=180)
+            print(1)
+            response = urllib.request.urlopen(request, data=encode_parameters, timeout=180)
             html = BeautifulSoup(response.read().decode('utf-8'), 'lxml')
+            response.close()
         except:
-            response = urllib.request.urlopen(req, data=encode_parameters, timeout=180)
+            print(2)
+            response = urllib.request.urlopen(request, data=encode_parameters, timeout=180)
             html = BeautifulSoup(response.read().decode('big5'), 'lxml')
-
-        response.close()
+            response.close()
 
         return html
 
     @classmethod
-    def random_ip(cls):
+    def get_page_big5(cls, url, parameters=None):
 
-        ip = ".".join(str(random.randint(0, 255)) for _ in range(4))
+        if parameters:
+            encode_parameters = urllib.parse.urlencode(parameters).encode('utf-8')
+        else:
+            encode_parameters = None
+        time.sleep(0.33)
+        request = urllib.request.Request(url)
 
-        return ip
+        ####隨機header挑選####
+        foo = [
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36',
+            'Mozilla/5.0 (compatible, MSIE 11, Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko',
+            'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1',
+            'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; da-dk) AppleWebKit/533.21.1 (KHTML, like Gecko) Version/5.0.5 Safari/533.21.1',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
+            'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2722.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'
+        ]
+        headers = str(random.choice(foo))
+        ####隨機header挑選####
+
+        request.add_header('User-Agent', headers)
+        time.sleep(0.42)
+        response = urllib.request.urlopen(request, data=encode_parameters, timeout=180)
+        html = BeautifulSoup(response.read().decode('big5'), 'lxml')
+        response.close()
+
+        return html
 
 
 ###新竹物流### 貨件已由鹿港營業所送達。貨物件數共1件
@@ -148,7 +173,7 @@ class hct(request, MyThread):
 
         # pack_no = str(item)
         pack_no = str(item[1])
-        ord_num = str(item[0])
+        ord_num = item[0]
 
         package_no_b64 = hct.b64_encode(pack_no)
         url = 'https://www.hct.com.tw/searchgoods.aspx?no=' + package_no_b64 + "&no2="
@@ -171,8 +196,7 @@ class hct(request, MyThread):
                     'referer': "https://www.hct.com.tw/check_code.aspx?v=U2VhcmNoR29vZHMuYXNweD9ubz1PVEkwTlRFeU5UazFOZz09Jm5vMj0=",
                     'Upgrade-Insecure-Requests': '1',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    "X-Forwarded-For": request.random_ip()
+                    'X-Requested-With': 'XMLHttpRequest'
                 }  # Cookie:ASP.NET_SessionId=tppfd1esuupisj55gddcdlft
 
                 response = requests.request("POST", url, data=payload, headers=headers)
@@ -261,8 +285,8 @@ class hct(request, MyThread):
         ### 開啟_WORKER_THREAD_NUM個線程
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
+            time.sleep(1)
             thread.start() ### 線程開始處理任務
-            time.sleep(0.67)
             threads.append(thread)
         for thread in threads:
             thread.join()
@@ -275,14 +299,14 @@ class hct(request, MyThread):
 class t_cat(request, MyThread):
 
     SHARE_Q = queue.Queue()
-    _WORKER_THREAD_NUM = 4
+    _WORKER_THREAD_NUM = 5
 
     @classmethod
     def parse_tcat(cls, item):
 
         # pack_no = str(item)
         pack_no = str(item[1])
-        ord_num = str(item[0])
+        ord_num = item[0]
 
         url = "http://www.t-cat.com.tw/Inquire/TraceDetail.aspx?BillID={}&ReturnUrl=Trace.aspx".format(str(pack_no))
 
@@ -403,7 +427,7 @@ class t_cat(request, MyThread):
 class pstmail(MyThread):
 
     SHARE_Q = queue.Queue()
-    _WORKER_THREAD_NUM = 3
+    _WORKER_THREAD_NUM = 4
 
     class pstmail_data:
 
@@ -489,10 +513,9 @@ class pstmail(MyThread):
 
     @classmethod
     def parse_pst(cls, item):
-
         # pack_no = str(item)
         pack_no = str(item[1])
-        ord_num = str(item[0])
+        ord_num = item[0]
 
         url = "http://postserv.post.gov.tw/pstmail/EsoafDispatcher"
 
@@ -634,18 +657,16 @@ class pstmail(MyThread):
 class e_can(request, MyThread):
 
     SHARE_Q = queue.Queue()
-    _WORKER_THREAD_NUM = 1
+    _WORKER_THREAD_NUM = 3
 
     @classmethod
     def parse_ecan(cls, item):
 
         # pack_no = str(item)
         pack_no = str(item[1])
-        ord_num = str(item[0])
+        ord_num = item[0]
 
-        # url1 = 'http://query2.e-can.com.tw/%E5%A4%9A%E7%AD%86%E6%9F%A5%E4%BB%B6_oo4o.asp'
-        url2 = 'http://query2.e-can.com.tw/self_link/id_link_c.asp?txtMainid={}'.format(pack_no)
-
+        url = 'http://query2.e-can.com.tw/self_link/id_link_c.asp?txtMainid={}'.format(pack_no)
         # data = {'txtMainID_1':str(pack_no),
         #         'txtMainID_6':'',
         #         'txtMainID_2':'',
@@ -658,33 +679,11 @@ class e_can(request, MyThread):
         #         'txtMainID_10':'',
         #         'B1':'(unable to decode value)'}
 
-        # s = requests.Session()
-        # response = s.post(url=url1, data=data)
-
-        headers = {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-            "Accept-Encoding": "gzip, deflate",
-            "Accept-Language": "zh-TW,zh;q=0.8,en-US;q=0.6,en;q=0.4",
-            "Cache-Control": "max-age=0",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-            "Host": "query2.e-can.com.tw",
-            "Referer": "http://query2.e-can.com.tw/%E5%A4%9A%E7%AD%86%E6%9F%A5%E4%BB%B6_oo4o.asp",
-            # "X-Forwarded-For": request.random_ip()
-            "REMOTE_ADDR": request.random_ip()
-        }
-
         attempts = 0
         while attempts < 3:
             try:
-                result = request.get_page_utf8(url=url2, request_header=headers)
-                # result = s.get(url=url2, headers=headers)
-
-                ### hinet判斷 ###
-                if result.find('img', {'alt': 'HiNet連線速率測試'}):
-                    connection.mail.send_mail('宅配通: {}, IP被檔'.format(pack_no), '物流')
-                    break
-                ### hinet判斷 ###
+                # result = request.get_page_utf8(url)
+                result = request.get_page_utf8(url)
 
                 ecan_list = list()
                 arrival = 0
@@ -710,7 +709,7 @@ class e_can(request, MyThread):
                          'date': ecan_list[i+3],
                          'station': ecan_list[i+4] + '營業所',
                          'status_code': ''} for i in range(0, len(ecan_list), 5)]
-
+                print(body)
                 now = datetime.datetime.today().strftime("%Y-%m%d-%H:%M:%S")
 
                 doc = {
@@ -737,18 +736,6 @@ class e_can(request, MyThread):
 
     @classmethod
     def worker(cls):
-
-        # count = 0
-        # while not cls.SHARE_Q.empty() and count < 20:
-        #     count += 1
-        #     print(count)
-        #     item = cls.SHARE_Q.get()
-        #     cls.SHARE_Q.task_done()
-        #     cls.parse_ecan(item)
-        #     while count == 10:
-        #         time.sleep(240)
-        #         count = 0
-
         while True:
             if not cls.SHARE_Q.empty():
                 item = cls.SHARE_Q.get()
@@ -763,21 +750,18 @@ class e_can(request, MyThread):
         # a = [778014468840, 777039297694, 777039300520]
 
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
-                       where [SCT_DESC] = '台灣宅配通' and [PACKAGE_STATUS] = 0 ''') # and [package_no] = '477003085064001'
+                       where [SCT_DESC] = '台灣宅配通' and [package_no] = '777059996650' ''') # and [PACKAGE_STATUS] = 0
         result = connection.db('AZURE').do_query(sql_stat)
 
         threads = []
-        count = 0
 
         for task in result:
             cls.SHARE_Q.put(task)
 
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
-            count += 1
-            if count > 20:
-                count = 0
-                time.sleep(37)
+            # time.sleep(0.27)
+            # thread.setDaemon(True)
             thread.start()
             threads.append(thread)
         for thread in threads:
@@ -796,7 +780,7 @@ class ktj(request, MyThread):
 
         # pack_no = str(item)
         pack_no = str(item[1])
-        ord_num = str(item[0])
+        ord_num = item[0]
 
         url = 'https://www.kerrytj.com/ZH/search/table_list.aspx'
         data = {'gno': pack_no}
@@ -844,7 +828,7 @@ class ktj(request, MyThread):
                     'UPDATE_TIME': now
                 }
 
-                connection.ELK.handle_ES('ktj', '嘉里物流', doc, str(pack_no))
+                connection.ELK.handle_ES('ktj', '嘉里物流', doc, pack_no)
 
                 if arrival == 1:
                     update(1, pack_no)
@@ -906,7 +890,7 @@ class tong_ying(request, MyThread):
 
         # pack_no = str(item)
         pack_no = str(item[1])
-        ord_num = str(item[0])
+        ord_num = item[0]
 
         url = 'http://www.tong-ying.com.tw/exploitation/sw.php?on1='
         url2 = 'http://www.tong-ying.com.tw/exploitation/search2.php'
@@ -920,8 +904,8 @@ class tong_ying(request, MyThread):
         attempts = 0
         while attempts < 3:
             try:
-                result = request.get_page_utf8(url=url+pack_no)
-                result2 = request.get_page_utf8(url=url2, parameters=payload)
+                result = request.get_page_big5(url + pack_no)
+                result2 = request.get_page_big5(url2, payload)
                 ###發送日期	發送站	貨物條碼	收件人	送達日期	代收款	訂單編號	配送狀態###
                 tongying_list = list()
                 tongying_list2 = list()
@@ -978,7 +962,7 @@ class tong_ying(request, MyThread):
                     'UPDATE_TIME': now
                 }
 
-                connection.ELK.handle_ES('tongyin', '通盈貨運', doc, str(pack_no))
+                connection.ELK.handle_ES('tongyin', '通盈貨運', doc, pack_no)
 
                 if arrival == 1:
                     update(1, pack_no)
@@ -991,7 +975,6 @@ class tong_ying(request, MyThread):
                 attempts += 1
                 if attempts == 3:
                     connection.mail.send_mail('通盈貨運: {}, {}'.format(pack_no, e), '物流')
-                    # connection.mail.send_mail('通盈貨運: {}, {}'.format(pack_no, sys.exc_info()[-1].tb_lineno), '物流')
 
     @classmethod
     def worker(cls):
@@ -1006,7 +989,7 @@ class tong_ying(request, MyThread):
     @classmethod
     def tongying_main(cls):
 
-        # a = [7272432870]
+        # a = [7269478576]
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
                        where [SCT_DESC] = '通盈通運' and [PACKAGE_STATUS] = 0 ''')
         result = connection.db('AZURE').do_query(sql_stat)
@@ -1037,7 +1020,7 @@ class maple(request, MyThread):
 
         # pack_no = str(item)
         pack_no = str(item[1])
-        ord_num = str(item[0])
+        ord_num = item[0]
 
         ##查無條碼(6週)
         url = 'http://www.25431010.tw/Search.php'
@@ -1071,7 +1054,6 @@ class maple(request, MyThread):
         }
 
         attempts = 0
-        response2 = None
         while attempts < 3:
             try:
                 req_counts = 0
@@ -1187,8 +1169,9 @@ class maple(request, MyThread):
 
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
+            # time.sleep(0.27)
+            # thread.setDaemon(True)
             thread.start()
-            time.sleep(0.3)
             threads.append(thread)
         for thread in threads:
             thread.join()
@@ -1221,8 +1204,8 @@ def main():
     def start():
 
         ### put method into list
-        a = [e_can.ecan_main, hct.hct_main, t_cat.tcat_main, pstmail.pstmail_main,
-             ktj.ktj_main, maple.maple_main, tong_ying.tongying_main]
+        a = [t_cat.tcat_main, hct.hct_main, pstmail.pstmail_main, ktj.ktj_main,
+             maple.maple_main, tong_ying.tongying_main, e_can.ecan_main]
         # a = [hct.hct_main, pstmail.pstmail_main]
         threads = []
 
@@ -1242,9 +1225,8 @@ def main():
     start()
 
 if __name__ == '__main__':
-
-    # e_can.ecan_main()
-    main()
+    e_can.ecan_main()
+    # main()
     print('Finish')
     # sys.exit()
 
