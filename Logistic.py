@@ -775,9 +775,9 @@ class e_can(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             count += 1
-            if count > 20:
+            if count > 21:
                 count = 0
-                time.sleep(37)
+                time.sleep(60)
             thread.start()
             threads.append(thread)
         for thread in threads:

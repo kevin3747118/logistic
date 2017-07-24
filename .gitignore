@@ -11,4 +11,6 @@ pic*
 
 [Tt]est*
 
+*.csv
+
 __pycache__
