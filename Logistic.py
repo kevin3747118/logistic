@@ -134,7 +134,7 @@ class request(object):
 class hct(request, MyThread):
 
     SHARE_Q = queue.Queue()
-    _WORKER_THREAD_NUM = 3
+    _WORKER_THREAD_NUM = 2
 
     @staticmethod
     def b64_encode(string):
@@ -275,7 +275,7 @@ class hct(request, MyThread):
 class t_cat(request, MyThread):
 
     SHARE_Q = queue.Queue()
-    _WORKER_THREAD_NUM = 4
+    _WORKER_THREAD_NUM = 2
 
     @classmethod
     def parse_tcat(cls, item):
@@ -403,7 +403,7 @@ class t_cat(request, MyThread):
 class pstmail(MyThread):
 
     SHARE_Q = queue.Queue()
-    _WORKER_THREAD_NUM = 3
+    _WORKER_THREAD_NUM = 2
 
     class pstmail_data:
 
@@ -775,9 +775,9 @@ class e_can(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             count += 1
-            if count > 21:
+            if count > 12:
                 count = 0
-                time.sleep(60)
+                time.sleep(75)
             thread.start()
             threads.append(thread)
         for thread in threads:
@@ -789,7 +789,7 @@ class e_can(request, MyThread):
 class ktj(request, MyThread):
 
     SHARE_Q = queue.Queue()
-    _WORKER_THREAD_NUM = 3
+    _WORKER_THREAD_NUM = 2
 
     @classmethod
     def parse_ktj(cls, item):
@@ -1030,7 +1030,7 @@ class tong_ying(request, MyThread):
 class maple(request, MyThread):
 
     SHARE_Q = queue.Queue()
-    _WORKER_THREAD_NUM = 3
+    _WORKER_THREAD_NUM = 2
 
     @classmethod
     def parse_maple(cls, item):
@@ -1206,7 +1206,7 @@ def update(status, pack_no):
 def main():
 
     SHARE_Q = queue.Queue()
-    _WORKER_THREAD_NUM = 3
+    _WORKER_THREAD_NUM = 4
 
     def worker():
 
