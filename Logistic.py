@@ -171,8 +171,8 @@ class hct(request, MyThread):
                     'referer': "https://www.hct.com.tw/check_code.aspx?v=U2VhcmNoR29vZHMuYXNweD9ubz1PVEkwTlRFeU5UazFOZz09Jm5vMj0=",
                     'Upgrade-Insecure-Requests': '1',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    "X-Forwarded-For": request.random_ip()
+                    'X-Requested-With': 'XMLHttpRequest'
+                    # "X-Forwarded-For": request.random_ip()
                 }  # Cookie:ASP.NET_SessionId=tppfd1esuupisj55gddcdlft
 
                 response = requests.request("POST", url, data=payload, headers=headers)
