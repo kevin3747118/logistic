@@ -800,6 +800,12 @@ class ktj(request, MyThread):
 
         url = 'https://www.kerrytj.com/ZH/search/table_list.aspx'
         data = {'gno': pack_no}
+        header = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Origin": "https://www.kerrytj.com",
+            "Referer": "https://www.kerrytj.com/zh/search/search_track.aspx",
+            "Upgrade-Insecure-Requests": "1"
+        }
         # url = 'https://www.kerrytj.com/zh/search/search_track_list.aspx'
         # data = {
         #     'rdType': '0',
@@ -813,7 +819,7 @@ class ktj(request, MyThread):
         attempts = 0
         while attempts < 3:
             try:
-                result = request.get_page_utf8(url, data)
+                result = request.get_page_utf8(url, request_header=header, parameters=data)
 
                 ktj_list = list()
                 arrival = 0
