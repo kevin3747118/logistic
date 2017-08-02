@@ -545,8 +545,11 @@ class pstmail(MyThread):
                 result = re.findall(pattern, response_text)[1:]
 
                 ### verify 'DATIME":""' in result or not ###
-                if 'DATIME":""' in result:
-                    result.remove('DATIME":""')
+                # if 'DATIME":""' in result:
+                #     result.remove('DATIME":""')
+                for i in result:
+                    if i == 'DATIME":""':
+                        result.remove(i)
                 ### verify 'DATIME":""' in result or not ###
 
                 clean_1 = list()
@@ -1133,6 +1136,16 @@ class maple(request, MyThread):
                 #          '目前狀態': maple_list[i + 2]} for i in range(0, len(maple_list), 3)]
 
                 ### 把前面3個拿掉，如果委外的話，狀態結束 ###
+                """if '委外' in maple_list:
+                    arrival = 1
+                    maple_list = maple_list[6:]
+                else:
+                    maple_list = maple_list[3:]"""
+                for i in maple_list:
+                    if '*' in i:
+                        arrival = 1
+                        del maple_list[3:6]
+
                 if '委外' in maple_list:
                     arrival = 1
                     maple_list = maple_list[6:]
