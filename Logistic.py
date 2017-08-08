@@ -75,9 +75,10 @@ class MyThread(threading.Thread):
 
         self._stop_event.set()
 
-    def stopped(self):
-
-        return self._stop_event.is_set()
+    #
+    # def stopped(self):
+    #
+    #     return self._stop_event.is_set()
 
 class request(object):
 
@@ -638,6 +639,7 @@ class e_can(request, MyThread):
 
     SHARE_Q = queue.Queue()
     _WORKER_THREAD_NUM = 1
+    ip_block = 0
 
     @classmethod
     def parse_ecan(cls, item):
@@ -672,9 +674,9 @@ class e_can(request, MyThread):
             "Connection": "keep-alive",
             "Upgrade-Insecure-Requests": "1",
             "Host": "query2.e-can.com.tw",
-            "Referer": "http://query2.e-can.com.tw/%E5%A4%9A%E7%AD%86%E6%9F%A5%E4%BB%B6_oo4o.asp",
+            "Referer": "http://query2.e-can.com.tw/%E5%A4%9A%E7%AD%86%E6%9F%A5%E4%BB%B6_oo4o.asp"
             # "X-Forwarded-For": request.random_ip()
-            "REMOTE_ADDR": request.random_ip()
+            # "REMOTE_ADDR": request.random_ip()
         }
 
         attempts = 0
@@ -685,7 +687,8 @@ class e_can(request, MyThread):
 
                 ### hinet判斷 ###
                 if result.find('img', {'alt': 'HiNet連線速率測試'}):
-                    connection.mail.send_mail('宅配通: {}, IP被檔'.format(pack_no), '物流')
+                    # connection.mail.send_mail('宅配通: {}, IP被檔'.format(pack_no), '物流')
+                    cls.ip_block = 1
                     break
                 ### hinet判斷 ###
 
@@ -700,7 +703,7 @@ class e_can(request, MyThread):
                         if i.text not in remove_list:
                             text = i.text.replace('\n', '')
                             ecan_list.append(text)
-                            if '配送完成' or '貨件送達' in text:
+                            if '配送完成' == text or '貨件送達' == text:
                                 arrival = 1
                             if text is None:
                                 connection.mail.send_mail('宅配通: {}, HTML格式可能改變'.format(pack_no), '物流')
@@ -766,7 +769,7 @@ class e_can(request, MyThread):
         # a = [778014468840, 777039297694, 777039300520]
 
         sql_stat = ('''select [ORD_NUM], [PACKAGE_NO] from [dbo].[LOGISTIC_STATUS]
-                       where [SCT_DESC] = '台灣宅配通' and [PACKAGE_STATUS] = 0 ''') # and [package_no] = '477003085064001'
+                       where [SCT_DESC] = '台灣宅配通' and [PACKAGE_STATUS] = 0 ''') # and [PACKAGE_STATUS] = 0  and [package_no] = '777060026116'
         result = connection.db('AZURE').do_query(sql_stat)
 
         threads = []
@@ -778,9 +781,14 @@ class e_can(request, MyThread):
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
             count += 1
-            if count > 12:
+            if cls.ip_block == 1:
+                connection.mail.send_mail('宅配通: IP被檔', '物流')
+                thread.stop()
+
+            if count > 8:
                 count = 0
-                time.sleep(75)
+                time.sleep(58)
+
             thread.start()
             threads.append(thread)
         for thread in threads:
