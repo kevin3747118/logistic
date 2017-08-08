@@ -744,22 +744,21 @@ class e_can(request, MyThread):
     @classmethod
     def worker(cls):
 
-        # count = 0
-        # while not cls.SHARE_Q.empty() and count < 20:
-        #     count += 1
-        #     print(count)
-        #     item = cls.SHARE_Q.get()
-        #     cls.SHARE_Q.task_done()
-        #     cls.parse_ecan(item)
-        #     while count == 10:
-        #         time.sleep(240)
-        #         count = 0
-
+        count = 0
         while True:
-            if not cls.SHARE_Q.empty():
-                item = cls.SHARE_Q.get()
-                cls.parse_ecan(item)
-                cls.SHARE_Q.task_done()
+            while not cls.SHARE_Q.empty():
+                count += 1
+                if count > 90:
+                    count = 0
+                    time.sleep(60)
+                # 被擋的話，清空queue，讓queue.get == False
+                if cls.ip_block == 1:
+                    connection.mail.send_mail('宅配通: IP被檔', '物流')
+                    cls.SHARE_Q = queue.Queue()
+                else:
+                    item = cls.SHARE_Q.get()
+                    cls.parse_ecan(item)
+                    cls.SHARE_Q.task_done()
             else:
                 break
 
@@ -773,22 +772,12 @@ class e_can(request, MyThread):
         result = connection.db('AZURE').do_query(sql_stat)
 
         threads = []
-        count = 0
 
         for task in result:
             cls.SHARE_Q.put(task)
 
         for i in range(cls._WORKER_THREAD_NUM):
             thread = MyThread(cls.worker)
-            count += 1
-            if cls.ip_block == 1:
-                connection.mail.send_mail('宅配通: IP被檔', '物流')
-                thread.stop()
-
-            if count > 8:
-                count = 0
-                time.sleep(58)
-
             thread.start()
             threads.append(thread)
         for thread in threads:
@@ -1101,7 +1090,7 @@ class maple(request, MyThread):
 
                 if req_counts == 3:
                     connection.mail.send_mail('便利帶: status code != 200', '物流')
-                    break
+                    threading.Event().is_set()
 
                 result2 = BeautifulSoup(response2.text, 'lxml')
 
@@ -1250,6 +1239,8 @@ def main():
         ### put method into list
         a = [e_can.ecan_main, hct.hct_main, t_cat.tcat_main, pstmail.pstmail_main,
              ktj.ktj_main, maple.maple_main, tong_ying.tongying_main]
+        # a = [hct.hct_main, t_cat.tcat_main, pstmail.pstmail_main,
+        #      ktj.ktj_main, maple.maple_main, tong_ying.tongying_main]
         # a = [hct.hct_main, pstmail.pstmail_main]
         threads = []
 
@@ -1270,7 +1261,6 @@ def main():
 
 if __name__ == '__main__':
 
-    # e_can.ecan_main()
     main()
     print('Finish')
     # sys.exit()
