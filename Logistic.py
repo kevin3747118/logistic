@@ -115,11 +115,11 @@ class request(object):
         try:
             response = urllib.request.urlopen(req, data=encode_parameters, timeout=180)
             html = BeautifulSoup(response.read().decode('utf-8'), 'lxml')
+            response.close()
         except:
             response = urllib.request.urlopen(req, data=encode_parameters, timeout=180)
             html = BeautifulSoup(response.read().decode('big5'), 'lxml')
-
-        response.close()
+            response.close()
 
         return html
 
@@ -748,9 +748,9 @@ class e_can(request, MyThread):
         while True:
             while not cls.SHARE_Q.empty():
                 count += 1
-                if count > 90:
+                if count > 85:
                     count = 0
-                    time.sleep(60)
+                    time.sleep(93)
                 # 被擋的話，清空queue，讓queue.get == False
                 if cls.ip_block == 1:
                     connection.mail.send_mail('宅配通: IP被檔', '物流')
