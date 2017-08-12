@@ -748,9 +748,9 @@ class e_can(request, MyThread):
         while True:
             while not cls.SHARE_Q.empty():
                 count += 1
-                if count > 85:
+                if count > 80:
                     count = 0
-                    time.sleep(93)
+                    time.sleep(105)
                 # 被擋的話，清空queue，讓queue.get == False
                 if cls.ip_block == 1:
                     connection.mail.send_mail('宅配通: IP被檔', '物流')
